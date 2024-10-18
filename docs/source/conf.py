@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Flask-ShadowSession documentation build configuration file, created by
 # sphinx-quickstart on Thu Mar 20 20:23:34 2014.
 #

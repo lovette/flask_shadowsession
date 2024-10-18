@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from flask.sessions import SecureCookieSessionInterface, SecureCookieSession, total_seconds
 from flask_redisdict import RedisDict
 from redis import StrictRedis
