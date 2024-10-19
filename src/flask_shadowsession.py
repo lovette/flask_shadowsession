@@ -18,7 +18,7 @@ class ShadowSessionDict(RedisDict):
 
     def __init__(self, *args, **kwargs):
         """Constructor"""
-        super(ShadowSessionDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.session = None
         self.accessed = False
@@ -114,23 +114,23 @@ class ShadowSessionDict(RedisDict):
         """Override base class."""
         self.accessed = True
         self.session.modified = True  # only applicable to permanent sessions
-        return super(ShadowSessionDict, self).__getitem__(name)
+        return super().__getitem__(name)
 
     def __setitem__(self, name, value):
         """Override base class."""
         self.accessed = True
         self.session.modified = True  # only applicable to permanent sessions
-        super(ShadowSessionDict, self).__setitem__(name, value)
+        super().__setitem__(name, value)
 
     def __delitem__(self, name):
         """Override base class."""
         self.accessed = True
         self.session.modified = True  # only applicable to permanent sessions
-        super(ShadowSessionDict, self).__delitem__(name)
+        super().__delitem__(name)
 
     def exists(self):
         """Override base class."""
-        rv = super(ShadowSessionDict, self).exists()
+        rv = super().exists()
         if not rv and SHADOW_KEY_NAME in self.session:
             # Remove shadow key from the session cookie
             del self.session[SHADOW_KEY_NAME]
@@ -138,7 +138,7 @@ class ShadowSessionDict(RedisDict):
 
     def delete(self):
         """Override base class."""
-        super(ShadowSessionDict, self).delete()
+        super().delete()
         if SHADOW_KEY_NAME in self.session:
             # Remove shadow key from the session cookie
             del self.session[SHADOW_KEY_NAME]
@@ -167,42 +167,42 @@ class ShadowSession(SecureCookieSession):
         ))
 
     def __init__(self, *args, **kwargs):
-        super(ShadowSession, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.shadow = self.shadowdict_class()
 
     def __getitem__(self, name):
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
-            return super(ShadowSession, self).__getitem__(name)
+            return super().__getitem__(name)
         else:
             return self.shadow[name]
 
     def __setitem__(self, name, value):
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
-            super(ShadowSession, self).__setitem__(name, value)
+            super().__setitem__(name, value)
         else:
             self.shadow[name] = value
 
     def __delitem__(self, name):
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
-            super(ShadowSession, self).__delitem__(name)
+            super().__delitem__(name)
         else:
             del self.shadow[name]
 
     def __contains__(self, name):
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
-            return super(ShadowSession, self).__contains__(name)
+            return super().__contains__(name)
         else:
             return self.shadow.__contains__(name)
 
     def pop(self, name, *args):
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
-            return super(ShadowSession, self).pop(name, *args)
+            return super().pop(name, *args)
         else:
             return self.shadow.pop(name, *args)
 
@@ -217,7 +217,7 @@ class ShadowSessionInterface(SecureCookieSessionInterface):
     """Class instance Redis connection. """
 
     def __init__(self, *args, **kwargs):
-        super(ShadowSessionInterface, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.max_age = None
 
@@ -227,7 +227,7 @@ class ShadowSessionInterface(SecureCookieSessionInterface):
         Note:
             Called automatically on request setup.
         """
-        session = super(ShadowSessionInterface, self).open_session(app, request)
+        session = super().open_session(app, request)
         if session is None:
             return None
 
@@ -250,7 +250,7 @@ class ShadowSessionInterface(SecureCookieSessionInterface):
             Called automatically on request teardown.
         """
         # Save default signed session cookie
-        super(ShadowSessionInterface, self).save_session(app, session, response)
+        super().save_session(app, session, response)
 
         # Update shadow session TTL
         session.shadow.save_session(session)
