@@ -1,7 +1,6 @@
-from flask.sessions import SecureCookieSessionInterface, SecureCookieSession, total_seconds
+from flask.sessions import SecureCookieSession, SecureCookieSessionInterface, total_seconds
 from flask_redisdict import RedisDict
 from redis import StrictRedis
-
 
 SHADOW_KEY_NAME = 'shadow_key'
 
