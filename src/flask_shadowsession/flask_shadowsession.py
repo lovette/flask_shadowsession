@@ -198,8 +198,7 @@ class ShadowSession(SecureCookieSession):
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
             return super().__getitem__(name)
-        else:
-            return self.shadow[name]
+        return self.shadow[name]
 
     def __setitem__(self, name: str, value: str | int | dict | Sequence) -> None:
         """Override base class."""
@@ -219,15 +218,13 @@ class ShadowSession(SecureCookieSession):
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
             return super().__contains__(name)
-        else:
-            return self.shadow.__contains__(name)
+        return self.shadow.__contains__(name)
 
     def pop(self, name: str, *args) -> str | int | dict | Sequence:
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
             return super().pop(name, *args)
-        else:
-            return self.shadow.pop(name, *args)
+        return self.shadow.pop(name, *args)
 
 
 class ShadowSessionInterface(SecureCookieSessionInterface):
