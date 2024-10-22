@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flask.sessions import SecureCookieSession, SecureCookieSessionInterface, total_seconds
+from flask.sessions import SecureCookieSession, SecureCookieSessionInterface
 from flask_redisdict import RedisDict
 from redis import Redis
 
@@ -284,7 +284,7 @@ class ShadowSessionInterface(SecureCookieSessionInterface):
         # This setting also defines the TTL of the the shadow session in Redis.
         session.permanent = False
 
-        max_age = self.max_age or total_seconds(app.permanent_session_lifetime)
+        max_age = self.max_age or int(app.permanent_session_lifetime.total_seconds()) or None
 
         session.shadow.open_session(session, self.redis, max_age)
 
