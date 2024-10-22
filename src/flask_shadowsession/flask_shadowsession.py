@@ -190,7 +190,7 @@ class ShadowSession(SecureCookieSession):
         This is the actual globlal ``session`` object.
     """
 
-    shadowdict_class = ShadowSessionDict
+    shadowdict_class: type[ShadowSessionDict] = ShadowSessionDict
 
     # Force some fields that Flask normally stores in the session cookie to be saved in the shadow.
     _force_shadow_fields = frozenset(("_flashes",))
@@ -237,9 +237,9 @@ class ShadowSessionInterface(SecureCookieSessionInterface):
     """SessionInterface that has a client-side ``SecureCookieSession`` and server-side "shadow" in Redis."""
 
     # Have SecureCookieSessionInterface use our ShadowSession class
-    session_class = ShadowSession
+    session_class: type[SecureCookieSession] = ShadowSession
 
-    redis = None
+    redis: Redis = None
     """Class instance Redis connection. """
 
     def __init__(self, *args, **kwargs) -> None:
