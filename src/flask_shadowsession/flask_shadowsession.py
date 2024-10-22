@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from flask.sessions import SecureCookieSession, SecureCookieSessionInterface, total_seconds
 from flask_redisdict import RedisDict
-from redis import StrictRedis
+from redis import Redis
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -41,7 +41,7 @@ class ShadowSessionDict(RedisDict):
         self.session = None
         self.accessed = False
 
-    def open_session(self, session: ShadowSession, redis: StrictRedis, max_age: int | None) -> None:
+    def open_session(self, session: ShadowSession, redis: Redis, max_age: int | None) -> None:
         """Initialize shadow session.
 
         Arguments:
@@ -51,7 +51,7 @@ class ShadowSessionDict(RedisDict):
             Called automatically on request setup.
         """
         assert isinstance(session, ShadowSession)
-        assert isinstance(redis, StrictRedis)
+        assert isinstance(redis, Redis)
 
         self.session = session
         self.accessed = False
