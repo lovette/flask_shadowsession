@@ -92,7 +92,7 @@ class ShadowSessionDict(RedisDict):
         reserve_key = None
 
         # Attempt to generate a new unique key
-        for _ in xrange(100):
+        for _ in range(100):
             possible_key = self._generate_key()
             reserve_key = possible_key + "-reserved"
             if self.redis.setnx(reserve_key, 1):
