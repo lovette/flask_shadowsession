@@ -35,7 +35,7 @@ class ShadowSessionDict(RedisDict):
     """
 
     def __init__(self, *args, **kwargs) -> None:
-        """Constructor"""
+        """Constructor."""
         super().__init__(*args, **kwargs)
 
         self.session = None
@@ -45,7 +45,9 @@ class ShadowSessionDict(RedisDict):
         """Initialize shadow session.
 
         Arguments:
-            max_age (int): Seconds
+            session (ShadowSession): App session.
+            redis (Redis): Redis instance.
+            max_age (int, optional): Shadow session TTL in seconds, None if it does not expire.
 
         Note:
             Called automatically on request setup.
@@ -66,13 +68,15 @@ class ShadowSessionDict(RedisDict):
         self.key = session.get(SHADOW_KEY_NAME, None)
         self.max_age = max_age
 
-    def save_session(self, session: ShadowSession) -> None:
+    def save_session(self, session: ShadowSession) -> None:  # noqa: ARG002
         """Update session last access date and TTL.
+
+        Arguments:
+            session (ShadowSession): App session.
 
         Note:
             Called automatically on request teardown.
         """
-
         if self.accessed is True and self.key is not None:
             p = self.redis.pipeline()
             self._on_save_session(p)
@@ -92,7 +96,16 @@ class ShadowSessionDict(RedisDict):
         return self._create_hash()
 
     def _create_hash(self) -> str:
-        """Override base class."""
+        """Create Redis hash to store shadow session fields and save key in app session.
+
+        Resets hash key TTL to `max_age`.
+
+        Raises:
+            ValueError: Hash could not be created.
+
+        Returns:
+            str: New hash key.
+        """
         new_key = None
         reserve_key = None
 
@@ -177,7 +190,7 @@ class ShadowSessionDict(RedisDict):
         """Update the hash as session is saved."""
 
     def _check_state(self) -> None:
-        """Override base class."""
+        """Override base class to assign session key and create Redis hash if necessary."""
         super()._check_state()
         if self.key is None:
             self.key = self._create_hash()
@@ -186,8 +199,11 @@ class ShadowSessionDict(RedisDict):
 class ShadowSession(SecureCookieSession):
     """Session object that has a client-side ``SecureCookieSession`` and server-side "shadow" in Redis.
 
+    Attributes:
+        shadow (ShadowSessionDict): Session "shadow" dictionary backed by a Redis hash.
+
     Note:
-        This is the actual globlal ``session`` object.
+        The app ``session`` object is an instance of this class.
     """
 
     shadowdict_class: type[ShadowSessionDict] = ShadowSessionDict
@@ -196,6 +212,7 @@ class ShadowSession(SecureCookieSession):
     _force_shadow_fields = frozenset(("_flashes",))
 
     def __init__(self, *args, **kwargs) -> None:
+        """Constructor."""
         super().__init__(*args, **kwargs)
 
         self.shadow = self.shadowdict_class()
@@ -234,7 +251,10 @@ class ShadowSession(SecureCookieSession):
 
 
 class ShadowSessionInterface(SecureCookieSessionInterface):
-    """SessionInterface that has a client-side ``SecureCookieSession`` and server-side "shadow" in Redis."""
+    """SessionInterface that has a client-side ``SecureCookieSession`` and server-side "shadow" in Redis.
+
+    Assign an instance of this class to `app.session_interface` to have `app.session` be a `ShadowSession` instance.
+    """
 
     # Have SecureCookieSessionInterface use our ShadowSession class
     session_class: type[SecureCookieSession] = ShadowSession
@@ -243,6 +263,7 @@ class ShadowSessionInterface(SecureCookieSessionInterface):
     """Class instance Redis connection. """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Constructor."""
         super().__init__(*args, **kwargs)
 
         self.max_age = None
