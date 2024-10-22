@@ -1,3 +1,11 @@
+"""Flask extension that creates a "shadow session" using a Redis hash as a dictionary.
+
+This module provides:
+- ShadowSession
+- ShadowSessionDict
+- ShadowSessionInterface
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
