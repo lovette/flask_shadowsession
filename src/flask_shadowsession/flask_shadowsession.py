@@ -110,7 +110,8 @@ class ShadowSessionDict(RedisDict):
                 reserve_key = None
 
         if new_key is None:
-            raise ValueError("Failed to generate unique shadow session key in 100 attempts.")
+            errmsg = "Failed to generate unique shadow session key in 100 attempts."
+            raise ValueError(errmsg)
 
         p = self.redis.pipeline()
 
