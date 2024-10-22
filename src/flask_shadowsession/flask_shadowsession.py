@@ -1,6 +1,17 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from flask.sessions import SecureCookieSession, SecureCookieSessionInterface, total_seconds
 from flask_redisdict import RedisDict
 from redis import StrictRedis
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from flask import Flask, Request, Response, SessionMixin
+    from redis import Pipeline
+
 
 SHADOW_KEY_NAME = 'shadow_key'
 
@@ -15,14 +26,14 @@ class ShadowSessionDict(RedisDict):
         We only create the hash in Redis when the first key in the shadow session is accessed.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Constructor"""
         super().__init__(*args, **kwargs)
 
         self.session = None
         self.accessed = False
 
-    def open_session(self, session, redis, max_age):
+    def open_session(self, session: ShadowSession, redis: StrictRedis, max_age: int | None) -> None:
         """Initialize shadow session.
 
         Arguments:
@@ -42,7 +53,7 @@ class ShadowSessionDict(RedisDict):
         self.key = session.get(SHADOW_KEY_NAME, None)
         self.max_age = max_age
 
-    def save_session(self, session):
+    def save_session(self, session: ShadowSession) -> None:
         """Update session last access date and TTL.
 
         Note:
@@ -56,7 +67,7 @@ class ShadowSessionDict(RedisDict):
                 p.expire(self.key, self.max_age)
             p.execute()
 
-    def regenerate_key(self):
+    def regenerate_key(self) -> str:
         """Generate a new hash key for this shadow session.
 
         Note:
@@ -67,7 +78,7 @@ class ShadowSessionDict(RedisDict):
         """
         return self._create_hash()
 
-    def _create_hash(self):
+    def _create_hash(self) -> str:
         """Override base class."""
         new_key = None
         reserve_key = None
@@ -109,25 +120,25 @@ class ShadowSessionDict(RedisDict):
 
         return self.key
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> str | int | dict | Sequence:
         """Override base class."""
         self.accessed = True
         self.session.modified = True  # only applicable to permanent sessions
         return super().__getitem__(name)
 
-    def __setitem__(self, name, value):
+    def __setitem__(self, name: str, value: str | int | dict | Sequence) -> None:
         """Override base class."""
         self.accessed = True
         self.session.modified = True  # only applicable to permanent sessions
         super().__setitem__(name, value)
 
-    def __delitem__(self, name):
+    def __delitem__(self, name: str) -> None:
         """Override base class."""
         self.accessed = True
         self.session.modified = True  # only applicable to permanent sessions
         super().__delitem__(name)
 
-    def exists(self):
+    def exists(self) -> bool:
         """Override base class."""
         rv = super().exists()
         if not rv and SHADOW_KEY_NAME in self.session:
@@ -137,7 +148,7 @@ class ShadowSessionDict(RedisDict):
             self.key = None  # recreate hash when next accessed
         return rv
 
-    def delete(self):
+    def delete(self) -> None:
         """Override base class."""
         super().delete()
         if SHADOW_KEY_NAME in self.session:
@@ -145,19 +156,20 @@ class ShadowSessionDict(RedisDict):
             del self.session[SHADOW_KEY_NAME]
         self.key = None  # recreate hash when next accessed
 
-    def _on_create_hash(self, p):
+    def _on_create_hash(self, p: Pipeline) -> None:
         """Update the hash as being created."""
         pass
 
-    def _on_save_session(self, p):
+    def _on_save_session(self, p: Pipeline) -> None:
         """Update the hash as session is saved."""
         pass
 
-    def _check_state(self):
+    def _check_state(self) -> None:
         """Override base class."""
         super()._check_state()
         if self.key is None:
             self.key = self._create_hash()
+
 
 class ShadowSession(SecureCookieSession):
     """Session object that has a client-side ``SecureCookieSession`` and server-side "shadow" in Redis.
@@ -173,40 +185,40 @@ class ShadowSession(SecureCookieSession):
         '_flashes',
         ))
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.shadow = self.shadowdict_class()
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> str | int | dict | Sequence:
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
             return super().__getitem__(name)
         else:
             return self.shadow[name]
 
-    def __setitem__(self, name, value):
+    def __setitem__(self, name: str, value: str | int | dict | Sequence) -> None:
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
             super().__setitem__(name, value)
         else:
             self.shadow[name] = value
 
-    def __delitem__(self, name):
+    def __delitem__(self, name: str) -> None:
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
             super().__delitem__(name)
         else:
             del self.shadow[name]
 
-    def __contains__(self, name):
+    def __contains__(self, name: str) -> bool:
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
             return super().__contains__(name)
         else:
             return self.shadow.__contains__(name)
 
-    def pop(self, name, *args):
+    def pop(self, name: str, *args) -> str | int | dict | Sequence:
         """Override base class."""
         if name not in ShadowSession._force_shadow_fields:
             return super().pop(name, *args)
@@ -223,12 +235,12 @@ class ShadowSessionInterface(SecureCookieSessionInterface):
     redis = None
     """Class instance Redis connection. """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.max_age = None
 
-    def open_session(self, app, request):
+    def open_session(self, app: Flask, request: Request) -> SecureCookieSession | None:
         """Override base class.
 
         Note:
@@ -250,7 +262,7 @@ class ShadowSessionInterface(SecureCookieSessionInterface):
 
         return session
 
-    def save_session(self, app, session, response):
+    def save_session(self, app: Flask, session: SessionMixin, response: Response) -> None:
         """Override base class.
 
         Note:
