@@ -166,11 +166,9 @@ class ShadowSessionDict(RedisDict):
 
     def _on_create_hash(self, p: Pipeline) -> None:
         """Update the hash as being created."""
-        pass
 
     def _on_save_session(self, p: Pipeline) -> None:
         """Update the hash as session is saved."""
-        pass
 
     def _check_state(self) -> None:
         """Override base class."""
