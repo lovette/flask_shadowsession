@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from redis import Pipeline
 
 
-SHADOW_KEY_NAME = 'shadow_key'
+SHADOW_KEY_NAME = "shadow_key"
 
 
 class ShadowSessionDict(RedisDict):
@@ -94,7 +94,7 @@ class ShadowSessionDict(RedisDict):
         # Attempt to generate a new unique key
         for _ in xrange(100):
             possible_key = self._generate_key()
-            reserve_key = possible_key + '-reserved'
+            reserve_key = possible_key + "-reserved"
             if self.redis.setnx(reserve_key, 1):
                 if not self.redis.exists(possible_key):
                     new_key = possible_key
@@ -105,7 +105,7 @@ class ShadowSessionDict(RedisDict):
                 reserve_key = None
 
         if new_key is None:
-            raise ValueError('Failed to generate unique shadow session key in 100 attempts.')
+            raise ValueError("Failed to generate unique shadow session key in 100 attempts.")
 
         p = self.redis.pipeline()
 
@@ -189,9 +189,7 @@ class ShadowSession(SecureCookieSession):
     shadowdict_class = ShadowSessionDict
 
     # Force some fields that Flask normally stores in the session cookie to be saved in the shadow.
-    _force_shadow_fields = frozenset((
-        '_flashes',
-        ))
+    _force_shadow_fields = frozenset(("_flashes",))
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
