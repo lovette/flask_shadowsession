@@ -50,8 +50,13 @@ class ShadowSessionDict(RedisDict):
         Note:
             Called automatically on request setup.
         """
-        assert isinstance(session, ShadowSession)
-        assert isinstance(redis, Redis)
+        if not isinstance(session, ShadowSession):
+            errmsg = f"<{self!r}> session instance is type <{session.__class__.__name__}> expected type <ShadowSession>"
+            raise TypeError(errmsg)
+
+        if not isinstance(redis, Redis):
+            errmsg = f"<{self!r}> redis instance is type <{redis.__class__.__name__}> expected type <Redis>"
+            raise TypeError(errmsg)
 
         self.session = session
         self.accessed = False
