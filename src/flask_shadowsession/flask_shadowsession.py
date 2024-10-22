@@ -133,6 +133,8 @@ class ShadowSessionDict(RedisDict):
         if not rv and SHADOW_KEY_NAME in self.session:
             # Remove shadow key from the session cookie
             del self.session[SHADOW_KEY_NAME]
+        if not rv:
+            self.key = None  # recreate hash when next accessed
         return rv
 
     def delete(self):
@@ -141,6 +143,7 @@ class ShadowSessionDict(RedisDict):
         if SHADOW_KEY_NAME in self.session:
             # Remove shadow key from the session cookie
             del self.session[SHADOW_KEY_NAME]
+        self.key = None  # recreate hash when next accessed
 
     def _on_create_hash(self, p):
         """Update the hash as being created."""
@@ -150,6 +153,11 @@ class ShadowSessionDict(RedisDict):
         """Update the hash as session is saved."""
         pass
 
+    def _check_state(self):
+        """Override base class."""
+        super()._check_state()
+        if self.key is None:
+            self.key = self._create_hash()
 
 class ShadowSession(SecureCookieSession):
     """Session object that has a client-side ``SecureCookieSession`` and server-side "shadow" in Redis.
