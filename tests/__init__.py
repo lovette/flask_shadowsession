@@ -1,0 +1,1 @@
+"""flask_shadowsession tests."""

@@ -38,6 +38,8 @@ Repository = "https://github.com/lovette/flask_shadowsession.git"
 
 [project.optional-dependencies]
 dev = [
+  "fakeredis",
+  "pytest",
   "ruff",
 ]
 
@@ -63,5 +65,19 @@ ignore = [
   "FBT002", # https://docs.astral.sh/ruff/rules/boolean-default-value-positional-argument/
 ]
 
+[tool.ruff.lint.extend-per-file-ignores]
+"tests/**/*.py" = [
+  # https://github.com/astral-sh/ruff/issues/4368
+  "ARG", # Unused function args -> fixtures nevertheless are functionally relevant...
+  "D103", # undocumented-public-function
+  "FBT", # Don't care about booleans as positional arguments in tests, e.g. via @pytest.mark.parametrize()
+  "PLR2004", # magic-value-comparison
+  "S101", # asserts allowed in tests...
+]
+
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib"]
+pythonpath = "src"
