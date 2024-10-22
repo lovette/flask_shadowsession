@@ -49,15 +49,25 @@ class ShadowSessionDict(RedisDict):
             redis (Redis): Redis instance.
             max_age (int, optional): Shadow session TTL in seconds, None if it does not expire.
 
+        Raises:
+            ValueError: Session or Redis instance has not been set.
+            TypeError: Session or Redis instance is not of correct type.
+
         Note:
             Called automatically on request setup.
         """
+        if not session:
+            errmsg = f"{self!r}:open_session: 'session' is required"
+            raise ValueError(errmsg)
         if not isinstance(session, ShadowSession):
-            errmsg = f"<{self!r}> session instance is type <{session.__class__.__name__}> expected type <ShadowSession>"
+            errmsg = f"{self!r} session instance is type <{session.__class__.__name__}> expected type <ShadowSession>"
             raise TypeError(errmsg)
 
+        if not redis:
+            errmsg = f"{self!r}:open_session: 'redis' is required"
+            raise ValueError(errmsg)
         if not isinstance(redis, Redis):
-            errmsg = f"<{self!r}> redis instance is type <{redis.__class__.__name__}> expected type <Redis>"
+            errmsg = f"{self!r} redis instance is type <{redis.__class__.__name__}> expected type <Redis>"
             raise TypeError(errmsg)
 
         self.session = session
@@ -274,6 +284,10 @@ class ShadowSessionInterface(SecureCookieSessionInterface):
         Note:
             Called automatically on request setup.
         """
+        if not self.redis:
+            errmsg = f"{self!r}: redis instance must be set prior to invoking 'open_session'"
+            raise ValueError(errmsg)
+
         session = super().open_session(app, request)
         if session is None:
             return None
