@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flask_shadowsession"
-version = "1.0.0"
+version = "1.5.0"
 description = "Flask extension that creates a \"shadow session\" using Redis hash as a dictionary."
 readme = "README.md"
 license = {file = "LICENSE"}
